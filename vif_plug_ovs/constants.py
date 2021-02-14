@@ -24,5 +24,8 @@ PLATFORM_WIN32 = 'win32'
 
 OVS_DPDK_INTERFACE_TYPE = 'dpdk'
 
+OVS_VDPA_TYPE = 'dpdkvdpa'
+OVS_VDPA_PREFIX = 'vdp'
+
 # Neutron dead VLAN.
 DEAD_VLAN = 4095

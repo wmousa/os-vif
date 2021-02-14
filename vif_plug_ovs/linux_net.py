@@ -29,6 +29,8 @@ from oslo_concurrency import processutils
 from oslo_log import log as logging
 from oslo_utils import excutils
 
+from ovs_module.containerovsdb import ovsdb_lib as containerovsdb_lib
+
 from vif_plug_ovs import constants
 from vif_plug_ovs import exception
 from vif_plug_ovs import privsep
@@ -59,6 +61,21 @@ def _update_device_mtu(dev, mtu):
         # When plugging an interface on Windows, we therefore skip
         # programming the MTU and fallback to DHCP advertisement.
         set_device_mtu(dev, mtu)
+
+
+@privsep.vif_plug.entrypoint
+def create_vdpa_port(vif_name, pf_pci, vf_pci, vf_num, vdpa_socket_path):
+    container_ovs = containerovsdb_lib.BaseOVS(connection='tcp:127.0.0.1:6000')
+    container_ovs.create_ovs_vif_port("br0-ovs", vif_name,
+                                      constants.OVS_VDPA_TYPE,
+                                      pf_pci, vf_pci, vf_num,
+                                      vdpa_socket_path)
+
+
+@privsep.vif_plug.entrypoint
+def delete_vdpa_port(vif_name):
+    container_ovs = containerovsdb_lib.BaseOVS(connection='tcp:127.0.0.1:6000')
+    container_ovs.delete_ovs_vif_port("br0-ovs", vif_name)
 
 
 @privsep.vif_plug.entrypoint
@@ -389,3 +406,14 @@ def get_pf_pci_from_vf(vf_pci):
     """
     physfn_path = os.readlink("/sys/bus/pci/devices/%s/physfn" % vf_pci)
     return os.path.basename(physfn_path)
+
+
+def get_phys_port_name(representor):
+    """Get physical port name for the represntor
+
+    :param: representor: the representor name
+    """
+    phys_port_name_file = "/sys/class/net/%s/phys_port_name" % representor
+    with open(phys_port_name_file, 'r') as f:
+        phys_port_name = f.readline().strip()
+    return phys_port_name
