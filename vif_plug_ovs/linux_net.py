@@ -64,12 +64,13 @@ def _update_device_mtu(dev, mtu):
 
 
 @privsep.vif_plug.entrypoint
-def create_vdpa_port(vif_name, pf_pci, vf_pci, vf_num, vdpa_socket_path):
+def create_vdpa_port(vif_name, pf_pci, vf_pci, vf_num, vdpa_socket_path, mtu):
     container_ovs = containerovsdb_lib.BaseOVS(connection='tcp:127.0.0.1:6000')
     container_ovs.create_ovs_vif_port("br0-ovs", vif_name,
                                       constants.OVS_VDPA_TYPE,
                                       pf_pci, vf_pci, vf_num,
-                                      vdpa_socket_path)
+                                      vdpa_socket_path,
+                                      mtu=mtu)
 
 
 @privsep.vif_plug.entrypoint

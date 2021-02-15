@@ -194,13 +194,14 @@ class OvsPlugin(plugin.PluginBase):
             pci_slot, pf_interface=True, switchdev=True)
         representor = linux_net.get_representor_port(pf_ifname, vf_num)
         phys_port_name = linux_net.get_phys_port_name(representor)
+        mtu = self._get_mtu(vif)
 
         # create representor port
         self._create_vif_port(vif, representor, instance_info)
 
         # create vdpa port
         linux_net.create_vdpa_port(vif_name, pf0_pci, pci_slot, phys_port_name,
-                                   vif.path)
+                                   vif.path, mtu)
 
     def _plug_vhostuser(self, vif, instance_info):
         self.ovsdb.ensure_ovs_bridge(
